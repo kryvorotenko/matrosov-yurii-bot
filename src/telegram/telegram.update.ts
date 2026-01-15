@@ -13,8 +13,11 @@ export class TelegramUpdate {
 
   @On('text')
   async onMessage(@Ctx() ctx: Context) {
-    const text = ctx.message?.['text'] || "";
-    const answer = await this.telegramService.handleMessage(text);
+    const text = ctx.message?.['text'] || '';
+    const answer = await this.telegramService.handleMessage(
+      ctx.message.from.id,
+      text,
+    );
     await ctx.reply(answer);
   }
 }

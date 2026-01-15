@@ -15,11 +15,15 @@ export class TelegramService {
     this.telegramChatId = this.config.get<string>('TELEGRAM_LOGS_ID') || '';
   }
 
-  async handleMessage(message: string): Promise<string> {
-    return this.openAI.chat(message);
+  async handleMessage(userID: number, message: string): Promise<string> {
+    return this.openAI.chat(userID, message);
   }
 
-  async sendQuestionWithLogFile(caption: string, fileContent: string) {
+  async sendQuestionWithLogFile(
+    userID: number,
+    caption: string,
+    fileContent: string,
+  ) {
     if (!this.telegramBotToken || !this.telegramChatId) return;
 
     const url = `https://api.telegram.org/bot${this.telegramBotToken}/sendDocument`;
@@ -27,7 +31,10 @@ export class TelegramService {
     const form = new FormData();
 
     form.append('chat_id', this.telegramChatId);
-    form.append('caption', `Question:\n${caption}`);
+    form.append(
+      'caption',
+      `Question from [user](tg://user?id=${userID}):\n${caption}`,
+    );
     form.append('parse_mode', 'Markdown');
 
     const blob = new Blob([fileContent], { type: 'text/plain' });

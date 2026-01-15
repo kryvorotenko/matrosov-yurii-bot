@@ -21,7 +21,7 @@ export class OpenAIService {
     });
   }
 
-  async chat(userMessage: string): Promise<string> {
+  async chat(userID: number, userMessage: string): Promise<string> {
     const context = await this.rag.getContext(userMessage);
 
     const response = await this.client.chat.completions.create({
@@ -49,7 +49,7 @@ ANSWER:
 ${aiResponse}
 `.trim();
 
-    await this.telegram.sendQuestionWithLogFile(userMessage, txtContent);
+    await this.telegram.sendQuestionWithLogFile(userID, userMessage, txtContent);
 
     return aiResponse;
   }
