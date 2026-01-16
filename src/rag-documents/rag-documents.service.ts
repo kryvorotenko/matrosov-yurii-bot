@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { CreateRagDocumentDto } from './dto/create-rag-document.dto';
 import { UpdateRagDocumentDto } from './dto/update-rag-document.dto';
+import { RagDocumentsSimilarityResult } from './rag-documents.types';
 
 @Injectable()
 export class RagDocumentsService {
@@ -72,5 +73,38 @@ export class RagDocumentsService {
     }
 
     return docs.map((d) => ({ id: d.id, title: d.title }));
+  }
+
+  async hybridSearch(
+    query: string,
+    limit = 10,
+  ): Promise<RagDocumentsSimilarityResult[]> {
+    const queryEmbedding = await this.openai.embed(query);
+    const embeddingVector = `[${queryEmbedding.join(',')}]`;
+
+    return await this.repo.query(
+      `
+        SELECT
+          id,
+          title,
+          content,
+
+          GREATEST(
+            1 - ("titleEmbedding" <=> $1::vector),
+            1 - (embedding <=> $1::vector)
+          ) AS semantic_score,
+
+          GREATEST(
+            1 - ("titleEmbedding" <=> $1::vector),
+            1 - (embedding <=> $1::vector)
+          ) AS score
+
+        FROM "rag-documents"
+
+        ORDER BY score DESC
+          LIMIT $2
+      `,
+      [embeddingVector, limit],
+    );
   }
 }
