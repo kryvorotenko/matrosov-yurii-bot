@@ -60,7 +60,7 @@ export class RagDocumentsService {
   }
 
   async findAll() {
-    return this.repo.find();
+    return this.repo.find({ order: { createdAt: 'DESC' } });
   }
 
   async recalcEmbeddings(): Promise<{ id: string; title: string }[]> {
