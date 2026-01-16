@@ -5,6 +5,7 @@ import { OpenAIModule } from './openai/openai.module';
 import { RAGModule } from './rag/rag.module';
 import { RagDocumentsModule } from './rag-documents/rag-documents.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     OpenAIModule,
     RAGModule,
     RagDocumentsModule,
+    AuthModule,
   ],
 })
 export class AppModule {}

@@ -6,9 +6,12 @@ import {
   Param,
   Post,
   Put,
+  UseGuards,
 } from '@nestjs/common';
 import { RagDocumentsService } from './rag-documents.service';
+import { ApiKeyGuard } from '../auth/api-key.guard';
 
+@UseGuards(ApiKeyGuard)
 @Controller('rag-documents')
 export class RagDocumentsController {
   constructor(private readonly service: RagDocumentsService) {}
