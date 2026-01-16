@@ -21,12 +21,14 @@ export class RagDocumentsService {
   ) {}
 
   async create(title: string, content: string) {
+    const titleEmbedding = await this.openai.embed(title);
     const embedding = await this.openai.embed(`${title}. ${content}`);
 
     return this.repo.save({
       title,
       content,
       embedding,
+      titleEmbedding,
     });
   }
 
