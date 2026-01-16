@@ -12,7 +12,7 @@ export class ApiKeyGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<Request>();
 
-    const apiKey = request.headers['Authorization'];
+    const apiKey = request.headers['authorization'];
 
     if (!apiKey || typeof apiKey !== 'string') {
       throw new ForbiddenException('Control key is missing');
