@@ -2,14 +2,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { RagDocumentEntity } from './entities/rag-document.entity';
 import { Repository } from 'typeorm';
 import { OpenAIService } from '../openai/openai.service';
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
-
-export interface SimilarityResult {
-  id: string;
-  title: string;
-  content: string;
-  score: number;
-}
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { CreateRagDocumentDto } from './dto/create-rag-document.dto';
+import { UpdateRagDocumentDto } from './dto/update-rag-document.dto';
 
 @Injectable()
 export class RagDocumentsService {
@@ -20,22 +20,38 @@ export class RagDocumentsService {
     private readonly openai: OpenAIService,
   ) {}
 
-  async create(title: string, content: string) {
-    const titleEmbedding = await this.openai.embed(title);
-    const embedding = await this.openai.embed(`${title}. ${content}`);
-
+  async create(dto: CreateRagDocumentDto) {
+    const titleEmbedding = await this.openai.embed(dto.title);
+    const embedding = await this.openai.embed(`${dto.title}. ${dto.content}`);
     return this.repo.save({
-      title,
-      content,
-      embedding,
+      title: dto.title,
+      content: dto.content,
       titleEmbedding,
+      embedding,
     });
   }
 
-  async update(id: string, content: string) {
-    const embedding = await this.openai.embed(content);
+  async update(id: string, dto: UpdateRagDocumentDto) {
+    const doc = await this.repo.findOne({ where: { id } });
+    if (!doc) throw new NotFoundException('Document not found');
 
-    await this.repo.update(id, { content, embedding });
+    const title = dto.title ?? doc.title;
+    const content = dto.content ?? doc.content;
+
+    const updatePayload: Partial<RagDocumentEntity> = { title, content };
+    const isTitleChanged = dto.title && dto.title !== doc.title;
+    const isContentChanged = dto.content && dto.content !== doc.content;
+
+    if (isTitleChanged) {
+      updatePayload.titleEmbedding = await this.openai.embed(title);
+    }
+
+    if (isTitleChanged && isContentChanged) {
+      updatePayload.embedding = await this.openai.embed(`${title}. ${content}`);
+    }
+
+    await this.repo.update(id, updatePayload);
+    return this.repo.findOne({ where: { id } });
   }
 
   async delete(id: string) {
@@ -56,35 +72,5 @@ export class RagDocumentsService {
     }
 
     return docs.map((d) => ({ id: d.id, title: d.title }));
-  }
-
-  async hybridSearch(query: string, limit = 10): Promise<SimilarityResult[]> {
-    const queryEmbedding = await this.openai.embed(query);
-    const embeddingVector = `[${queryEmbedding.join(',')}]`;
-
-    return await this.repo.query(
-      `
-        SELECT
-          id,
-          title,
-          content,
-
-          GREATEST(
-            1 - ("titleEmbedding" <=> $1::vector),
-            1 - (embedding <=> $1::vector)
-          ) AS semantic_score,
-
-          GREATEST(
-            1 - ("titleEmbedding" <=> $1::vector),
-            1 - (embedding <=> $1::vector)
-          ) AS score
-
-        FROM "rag-documents"
-
-        ORDER BY score DESC
-          LIMIT $2
-      `,
-      [embeddingVector, limit],
-    );
   }
 }

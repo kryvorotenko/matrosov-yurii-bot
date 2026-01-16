@@ -1,4 +1,14 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateRagDocumentDto } from './create-rag-document.dto';
+import { IsOptional, IsString, MinLength, MaxLength } from 'class-validator';
 
-export class UpdateRagDocumentDto extends PartialType(CreateRagDocumentDto) {}
+export class UpdateRagDocumentDto {
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  @MaxLength(256)
+  title?: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  content?: string;
+}

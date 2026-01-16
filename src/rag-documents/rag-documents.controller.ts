@@ -10,6 +10,8 @@ import {
 } from '@nestjs/common';
 import { RagDocumentsService } from './rag-documents.service';
 import { ApiKeyGuard } from '../auth/api-key.guard';
+import { CreateRagDocumentDto } from './dto/create-rag-document.dto';
+import { UpdateRagDocumentDto } from './dto/update-rag-document.dto';
 
 @UseGuards(ApiKeyGuard)
 @Controller('rag-documents')
@@ -17,18 +19,18 @@ export class RagDocumentsController {
   constructor(private readonly service: RagDocumentsService) {}
 
   @Post()
-  create(@Body() body: { title: string; content: string }) {
-    return this.service.create(body.title, body.content);
+  create(@Body() dto: CreateRagDocumentDto) {
+    return this.service.create(dto);
   }
 
   @Post('recalc-embeddings')
-  async recalcEmbeddings() {
+  recalcEmbeddings() {
     return this.service.recalcEmbeddings();
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() body: { content: string }) {
-    return this.service.update(id, body.content);
+  update(@Param('id') id: string, @Body() dto: UpdateRagDocumentDto) {
+    return this.service.update(id, dto);
   }
 
   @Delete(':id')
