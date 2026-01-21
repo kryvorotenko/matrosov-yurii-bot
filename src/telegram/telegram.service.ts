@@ -37,7 +37,7 @@ export class TelegramService {
     const form = new FormData();
     form.append('chat_id', this.telegramChatId);
     form.append('caption', caption);
-    form.append('parse_mode', 'HTML');
+    form.append('parse_mode', 'Markdown');
 
     const blob = new Blob([fileContent], { type: 'text/plain' });
     form.append('document', blob, `log-${Date.now()}.txt`);
@@ -45,7 +45,7 @@ export class TelegramService {
     await fetch(url, { method: 'POST', body: form });
   }
 
-  private escapeMarkdown(text: string): string {
+  escapeMarkdown(text: string): string {
     return text.replace(/([_*[\]()~`>#+\-=|{}.!])/g, '\\$1');
   }
 }
