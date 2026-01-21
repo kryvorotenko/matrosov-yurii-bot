@@ -36,7 +36,7 @@ export class TelegramService {
 
     const form = new FormData();
     form.append('chat_id', this.telegramChatId);
-    form.append('caption', this.escapeMarkdown(caption));
+    form.append('caption', caption);
     form.append('parse_mode', 'MarkdownV2');
 
     const blob = new Blob([fileContent], { type: 'text/plain' });
