@@ -71,7 +71,7 @@ export class ConversationsService {
     const txtContent =
       `QUESTION:\n${text}\n\nANSWER:\n${answer}\n\n--------------------\n\nCONTEXT:\n${JSON.stringify(ragDocs, null, 2)}\n\n--------------------\n\nSUMMARY:\n${JSON.stringify(conversation.summary, null, 2)}\n\n--------------------\n\nHISTORY:\n${JSON.stringify(history, null, 2)}`.trim();
     const pureUserID = userID.replace('tg_dm:', '');
-    const logMessage = `Question from [user](tg://user?id=${pureUserID}) id_${pureUserID}:\n${text}`;
+    const logMessage = `Question from <a href="tg://user?id=${pureUserID}">user</a> id_${pureUserID}:<br/>${text}`;
     await this.telegram.sendLogWithFile(logMessage, txtContent);
 
     const messageEntity = this.conversationMessageRepository.create({
