@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateConversationDto } from './dto/create-conversation.dto';
 import { UpdateConversationDto } from './dto/update-conversation.dto';
 import { OpenAIService } from '../openai/openai.service';
@@ -22,24 +22,65 @@ export class ConversationsService {
     private readonly conversationMessageRepository: Repository<ConversationMessageEntity>,
   ) {}
 
-  create(createConversationDto: CreateConversationDto) {
-    return 'This action adds a new conversation';
+  async findAll(page = 1, limit = 20) {
+    const [items, total] = await this.conversationRepository.findAndCount({
+      order: { updatedAt: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
+      select: {
+        id: true,
+        externalId: true,
+        createdAt: true,
+        updatedAt: true,
+        isViewedByAdmin: true,
+        messagesCount: true,
+        summary: true,
+        userMetadata: true,
+      },
+    });
+
+    return { items, total, page, limit };
   }
 
-  findAll() {
-    return `This action returns all conversations`;
+  async findOne(id: string) {
+    const conversation = await this.conversationRepository.findOne({
+      where: { id },
+      relations: ['messages', 'messages.usedDocuments'],
+      order: { messages: { createdAt: 'ASC' } },
+    });
+
+    if (!conversation) {
+      throw new NotFoundException('Conversation not found');
+    }
+
+    return conversation;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} conversation`;
+  async markAsViewed(id: string) {
+    const conversation = await this.conversationRepository.findOne({
+      where: { id },
+    });
+
+    if (!conversation) {
+      throw new NotFoundException('Conversation not found');
+    }
+
+    conversation.isViewedByAdmin = true;
+    await this.conversationRepository.save(conversation);
+    return { success: true };
   }
 
-  update(id: number, updateConversationDto: UpdateConversationDto) {
-    return `This action updates a #${id} conversation`;
-  }
+  async remove(id: string) {
+    const conversation = await this.conversationRepository.findOne({
+      where: { id },
+    });
 
-  remove(id: number) {
-    return `This action removes a #${id} conversation`;
+    if (!conversation) {
+      throw new NotFoundException('Conversation not found');
+    }
+
+    await this.conversationRepository.remove(conversation);
+    return { success: true };
   }
 
   async handleMessage(
