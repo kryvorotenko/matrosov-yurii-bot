@@ -33,7 +33,7 @@ export class TelegramService {
     form.append('chat_id', this.telegramChatId);
     form.append(
       'caption',
-      `Question from [user](tg://user?id=${userID}):\n${caption}`,
+      `Question from [user](tg://user?id=${userID}) #${userID}:\n${caption}`,
     );
     form.append('parse_mode', 'Markdown');
 

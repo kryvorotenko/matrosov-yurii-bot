@@ -1,9 +1,9 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { OpenAI } from 'openai';
 import { SYSTEM_PROMPT } from '../prompts/system.prompt';
-import { RAGService } from '../rag/rag.service';
 import { ConfigService } from '@nestjs/config';
 import { TelegramService } from '../telegram/telegram.service';
+import { RagDocumentsService } from '../rag-documents/rag-documents.service';
 
 @Injectable()
 export class OpenAIService {
@@ -11,10 +11,10 @@ export class OpenAIService {
 
   constructor(
     private readonly config: ConfigService,
-    @Inject(forwardRef(() => RAGService))
-    private readonly rag: RAGService,
     @Inject(forwardRef(() => TelegramService))
     private readonly telegram: TelegramService,
+    @Inject(forwardRef(() => RagDocumentsService))
+    private readonly rag: RagDocumentsService,
   ) {
     this.client = new OpenAI({
       apiKey: this.config.get<string>('OPENAI_API_KEY'),
@@ -22,7 +22,7 @@ export class OpenAIService {
   }
 
   async chat(userID: number, userMessage: string): Promise<string> {
-    const context = await this.rag.getContext(userMessage);
+    const context = await this.rag.ragSearch(userMessage);
 
     const response = await this.client.chat.completions.create({
       model: 'gpt-4.1',
@@ -49,7 +49,11 @@ ANSWER:
 ${aiResponse}
 `.trim();
 
-    await this.telegram.sendQuestionWithLogFile(userID, userMessage, txtContent);
+    await this.telegram.sendQuestionWithLogFile(
+      userID,
+      userMessage,
+      txtContent,
+    );
 
     return aiResponse;
   }

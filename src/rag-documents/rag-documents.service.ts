@@ -107,4 +107,11 @@ export class RagDocumentsService {
       [embeddingVector, limit],
     );
   }
+
+  async ragSearch(query: string) {
+    const results = await this.hybridSearch(query);
+    const effectiveResults = results.filter((result) => result.score > 0.3);
+    if (effectiveResults.length === 0) return '';
+    return results.map((r) => r.score + '. ' + r.content).join('\n---\n');
+  }
 }
