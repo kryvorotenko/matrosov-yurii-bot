@@ -4,3 +4,5 @@ export interface RagDocumentsSimilarityResult {
   content: string;
   score: number;
 }
+
+export const RAG_THRESHOLD = 0.3;

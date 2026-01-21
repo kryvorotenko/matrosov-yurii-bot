@@ -1,61 +1,59 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { OpenAI } from 'openai';
 import { SYSTEM_PROMPT } from '../prompts/system.prompt';
 import { ConfigService } from '@nestjs/config';
-import { TelegramService } from '../telegram/telegram.service';
-import { RagDocumentsService } from '../rag-documents/rag-documents.service';
+import { ChatCompletionMessageParam } from 'openai/resources/chat/completions/completions';
+import { OpenAIHistoryMessage } from './openai.types';
+import { SUMMARY_PROMPT } from '../prompts/summary.prompt';
 
 @Injectable()
 export class OpenAIService {
   private client: OpenAI;
 
-  constructor(
-    private readonly config: ConfigService,
-    @Inject(forwardRef(() => TelegramService))
-    private readonly telegram: TelegramService,
-    @Inject(forwardRef(() => RagDocumentsService))
-    private readonly rag: RagDocumentsService,
-  ) {
+  constructor(private readonly config: ConfigService) {
     this.client = new OpenAI({
       apiKey: this.config.get<string>('OPENAI_API_KEY'),
     });
   }
 
-  async chat(userID: number, userMessage: string): Promise<string> {
-    const context = await this.rag.ragSearch(userMessage);
+  async chat(props: {
+    message: string;
+    context?: string;
+    summary?: string;
+    history?: Array<OpenAIHistoryMessage>;
+  }): Promise<string> {
+    const messages: ChatCompletionMessageParam[] = [
+      { role: 'system', content: SYSTEM_PROMPT(props.context || '') },
+    ];
+
+    if (props.summary) {
+      const summaryPrompt =
+        'Краткое содержание предыдущего диалога: ' + props.summary;
+      messages.push({ role: 'system', content: summaryPrompt });
+    }
+
+    messages.push(...(props.history || []));
+    messages.push({ role: 'user', content: props.message });
 
     const response = await this.client.chat.completions.create({
       model: 'gpt-4.1',
-      messages: [
-        { role: 'system', content: SYSTEM_PROMPT(context) },
-        { role: 'user', content: userMessage },
-      ],
+      messages: messages,
     });
 
-    const aiResponse = response.choices[0].message.content || '';
+    return response.choices[0].message.content || '';
+  }
 
-    const txtContent = `
-QUESTION:
-${userMessage}
-
---------------------
-
-CONTEXT:
-${context}
-
---------------------
-
-ANSWER:
-${aiResponse}
-`.trim();
-
-    await this.telegram.sendQuestionWithLogFile(
-      userID,
-      userMessage,
-      txtContent,
-    );
-
-    return aiResponse;
+  async summary(
+    prevSummary: string | null,
+    newMessages: Array<OpenAIHistoryMessage>,
+  ) {
+    const response = await this.client.chat.completions.create({
+      model: 'gpt-4.1',
+      messages: [
+        { role: 'system', content: SUMMARY_PROMPT(prevSummary, newMessages) },
+      ],
+    });
+    return response.choices[0].message.content || '';
   }
 
   async embed(text: string): Promise<number[]> {

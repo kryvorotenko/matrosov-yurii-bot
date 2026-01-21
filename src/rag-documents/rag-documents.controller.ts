@@ -23,10 +23,10 @@ export class RagDocumentsController {
     return this.service.create(dto);
   }
 
-  @Post('recalc-embeddings')
-  recalcEmbeddings() {
-    return this.service.recalcEmbeddings();
-  }
+  // @Post('recalc-embeddings')
+  // recalcEmbeddings() {
+  //   return this.service.recalcEmbeddings();
+  // }
 
   @Put(':id')
   update(@Param('id') id: string, @Body() dto: UpdateRagDocumentDto) {

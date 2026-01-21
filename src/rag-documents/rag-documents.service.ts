@@ -10,7 +10,10 @@ import {
 } from '@nestjs/common';
 import { CreateRagDocumentDto } from './dto/create-rag-document.dto';
 import { UpdateRagDocumentDto } from './dto/update-rag-document.dto';
-import { RagDocumentsSimilarityResult } from './rag-documents.types';
+import {
+  RAG_THRESHOLD,
+  RagDocumentsSimilarityResult,
+} from './rag-documents.types';
 
 @Injectable()
 export class RagDocumentsService {
@@ -75,7 +78,12 @@ export class RagDocumentsService {
     return docs.map((d) => ({ id: d.id, title: d.title }));
   }
 
-  async hybridSearch(
+  async search(query: string) {
+    const results = await this.hybridSearch(query);
+    return results.filter((result) => result.score > RAG_THRESHOLD);
+  }
+
+  private async hybridSearch(
     query: string,
     limit = 10,
   ): Promise<RagDocumentsSimilarityResult[]> {
@@ -106,14 +114,5 @@ export class RagDocumentsService {
       `,
       [embeddingVector, limit],
     );
-  }
-
-  async ragSearch(query: string) {
-    const results = await this.hybridSearch(query);
-    const effectiveResults = results.filter((result) => result.score > 0.3);
-    if (effectiveResults.length === 0) return '';
-    return effectiveResults
-      .map((r) => r.score + '. ' + r.content)
-      .join('\n---\n');
   }
 }
