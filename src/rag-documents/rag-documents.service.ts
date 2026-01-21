@@ -112,6 +112,8 @@ export class RagDocumentsService {
     const results = await this.hybridSearch(query);
     const effectiveResults = results.filter((result) => result.score > 0.3);
     if (effectiveResults.length === 0) return '';
-    return results.map((r) => r.score + '. ' + r.content).join('\n---\n');
+    return effectiveResults
+      .map((r) => r.score + '. ' + r.content)
+      .join('\n---\n');
   }
 }
