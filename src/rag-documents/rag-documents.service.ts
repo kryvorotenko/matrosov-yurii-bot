@@ -66,6 +66,12 @@ export class RagDocumentsService {
     return this.repo.find({ order: { createdAt: 'DESC' } });
   }
 
+  async findByID(id: string) {
+    const document = await this.repo.findOne({ where: { id } });
+    if (!document) throw new NotFoundException('Document not found');
+    return document;
+  }
+
   async recalcEmbeddings(): Promise<{ id: string; title: string }[]> {
     const docs = await this.repo.find();
 

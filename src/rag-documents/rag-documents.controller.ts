@@ -42,4 +42,9 @@ export class RagDocumentsController {
   findAll() {
     return this.service.findAll();
   }
+
+  @Get(':id')
+  findByID(@Param('id') id: string) {
+    return this.service.findByID(id);
+  }
 }
