@@ -69,7 +69,7 @@ export class ConversationsService {
     });
 
     const txtContent =
-      `QUESTION:\n${text}\n\nANSWER:\n${answer}\n\n--------------------\n\nCONTEXT:\n${JSON.stringify(context)}\n\n--------------------\n\nSUMMARY:\n${JSON.stringify(conversation.summary)}\n\n--------------------\n\nHISTORY:\n${JSON.stringify(history)}`.trim();
+      `QUESTION:\n${text}\n\nANSWER:\n${answer}\n\n--------------------\n\nCONTEXT:\n${JSON.stringify(ragDocs, null, 2)}\n\n--------------------\n\nSUMMARY:\n${JSON.stringify(conversation.summary, null, 2)}\n\n--------------------\n\nHISTORY:\n${JSON.stringify(history, null, 2)}`.trim();
     const logMessage = `Question from [user](tg://user?id=${userID}) id_${userID}:\n${text}`;
     await this.telegram.sendLogWithFile(logMessage, txtContent);
 
