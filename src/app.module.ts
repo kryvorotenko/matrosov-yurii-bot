@@ -6,6 +6,7 @@ import { RagDocumentsModule } from './rag-documents/rag-documents.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { ConversationsModule } from './conversations/conversations.module';
+import { PersonalitiesModule } from './personalities/personalities.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { ConversationsModule } from './conversations/conversations.module';
     RagDocumentsModule,
     AuthModule,
     ConversationsModule,
+    PersonalitiesModule,
   ],
 })
 export class AppModule {}

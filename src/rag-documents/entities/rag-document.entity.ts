@@ -2,13 +2,20 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
+  JoinTable,
   ManyToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { ConversationMessageEntity } from '../../conversations/entities/conversation-message.entity';
+import { Personality } from '../../personalities/entities/personality.entity';
 
 @Entity('rag-documents')
+@Index('idx_rag_allowed_roles', (doc: RagDocumentEntity) => [doc.allowedRoles])
+@Index('idx_rag_forbidden_roles', (doc: RagDocumentEntity) => [
+  doc.forbiddenRoles,
+])
 export class RagDocumentEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -35,4 +42,19 @@ export class RagDocumentEntity {
 
   @ManyToMany(() => ConversationMessageEntity, (m) => m.usedDocuments)
   usedInMessages: ConversationMessageEntity[];
+
+  /* ---------- ACCESS CONTROL ---------- */
+  @Column({ type: 'text', array: true, nullable: true })
+  allowedRoles?: string[];
+
+  @Column({ type: 'text', array: true, nullable: true })
+  forbiddenRoles?: string[];
+
+  @ManyToMany(() => Personality)
+  @JoinTable({ name: 'rag_document_allowed_personalities' })
+  allowedPersonalities: Personality[];
+
+  @ManyToMany(() => Personality)
+  @JoinTable({ name: 'rag_document_forbidden_personalities' })
+  forbiddenPersonalities: Personality[];
 }
