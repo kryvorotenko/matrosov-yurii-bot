@@ -29,7 +29,7 @@ export class ConversationMessageEntity {
   aiResponse: string;
 
   // pgvector // text-embedding-3-large
-  @Column({ type: 'vector', length: 3072 })
+  @Column({ type: 'vector', length: 3072, select: false })
   embedding: number[];
 
   @ManyToOne(

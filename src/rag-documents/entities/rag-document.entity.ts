@@ -33,11 +33,11 @@ export class RagDocumentEntity {
   content: string;
 
   // pgvector // text-embedding-3-large
-  @Column({ type: 'vector', length: 3072 })
+  @Column({ type: 'vector', length: 3072, select: false })
   titleEmbedding: number[];
 
   // pgvector // text-embedding-3-large
-  @Column({ type: 'vector', length: 3072 })
+  @Column({ type: 'vector', length: 3072, select: false })
   embedding: number[];
 
   @ManyToMany(() => ConversationMessageEntity, (m) => m.usedDocuments)
