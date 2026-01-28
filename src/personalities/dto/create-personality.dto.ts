@@ -1,4 +1,10 @@
-import { IsArray, IsString, IsUUID, MaxLength } from 'class-validator';
+import {
+  IsArray,
+  IsOptional,
+  IsString,
+  IsUUID,
+  MaxLength,
+} from 'class-validator';
 
 export class CreatePersonalityDto {
   @IsString()
@@ -25,4 +31,10 @@ export class CreatePersonalityDto {
   @IsArray()
   @IsUUID('4', { each: true })
   forbiddenRagDocumentIds?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  @MaxLength(64, { each: true })
+  aliases?: string[];
 }

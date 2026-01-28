@@ -34,6 +34,9 @@ export class Personality {
   @Column('text')
   forbiddenTopics: string;
 
+  @Column('text', { array: true, default: () => 'ARRAY[]::text[]' })
+  aliases: string[];
+
   /* ---------- RAG ACCESS ---------- */
 
   @ManyToMany(() => RagDocumentEntity, (doc) => doc.allowedPersonalities)
