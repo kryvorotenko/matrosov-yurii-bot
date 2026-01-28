@@ -16,8 +16,12 @@ export class ConversationsController {
   constructor(private readonly conversationsService: ConversationsService) {}
 
   @Get()
-  findAll(@Query('page') page = 1, @Query('limit') limit = 20) {
-    return this.conversationsService.findAll(+page, +limit);
+  findAll(
+    @Query('page') page = 1,
+    @Query('limit') limit = 20,
+    @Query('search') search = '',
+  ) {
+    return this.conversationsService.findAll(+page, +limit, search);
   }
 
   @Get(':id')

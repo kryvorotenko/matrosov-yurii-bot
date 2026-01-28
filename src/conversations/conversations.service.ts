@@ -1,11 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateConversationDto } from './dto/create-conversation.dto';
-import { UpdateConversationDto } from './dto/update-conversation.dto';
 import { OpenAIService } from '../openai/openai.service';
 import { RagDocumentsService } from '../rag-documents/rag-documents.service';
 import { TelegramService } from '../telegram/telegram.service';
 import { ConversationEntity } from './entities/conversation.entity';
-import { Repository } from 'typeorm';
+import { ILike, Raw, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ConversationMessageEntity } from './entities/conversation-message.entity';
 import { OpenAIHistoryMessage } from '../openai/openai.types';
@@ -22,8 +20,17 @@ export class ConversationsService {
     private readonly conversationMessageRepository: Repository<ConversationMessageEntity>,
   ) {}
 
-  async findAll(page = 1, limit = 20) {
+  async findAll(page = 1, limit = 20, search = '') {
+    const where = search
+      ? [
+          { summary: ILike(`%${search}%`) },
+          { externalId: ILike(`%${search}%`) },
+          Raw((alias) => `${alias}::text ILIKE '%${search}%'`, { search }),
+        ]
+      : {};
+
     const [items, total] = await this.conversationRepository.findAndCount({
+      where,
       order: { updatedAt: 'DESC' },
       skip: (page - 1) * limit,
       take: limit,
