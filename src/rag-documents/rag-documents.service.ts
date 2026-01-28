@@ -1,6 +1,6 @@
 import { InjectRepository } from '@nestjs/typeorm';
 import { RagDocumentEntity } from './entities/rag-document.entity';
-import { Like, Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { OpenAIService } from '../openai/openai.service';
 import {
   forwardRef,
@@ -66,7 +66,7 @@ export class RagDocumentsService {
     const { page, limit, search } = params;
 
     const where = search
-      ? [{ title: Like(`%${search}%`) }, { content: Like(`%${search}%`) }]
+      ? [{ title: ILike(`%${search}%`) }, { content: ILike(`%${search}%`) }]
       : {};
 
     const [items, total] = await this.repo.findAndCount({
