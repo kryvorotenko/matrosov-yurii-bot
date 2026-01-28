@@ -50,11 +50,17 @@ export class RagDocumentEntity {
   @Column({ type: 'text', array: true, nullable: true })
   forbiddenRoles?: string[];
 
-  @ManyToMany(() => Personality)
+  @ManyToMany(
+    () => Personality,
+    (personality) => personality.allowedRagDocuments,
+  )
   @JoinTable({ name: 'rag_document_allowed_personalities' })
   allowedPersonalities: Personality[];
 
-  @ManyToMany(() => Personality)
+  @ManyToMany(
+    () => Personality,
+    (personality) => personality.forbiddenRagDocuments,
+  )
   @JoinTable({ name: 'rag_document_forbidden_personalities' })
   forbiddenPersonalities: Personality[];
 }
