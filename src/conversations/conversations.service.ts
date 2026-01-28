@@ -21,34 +21,36 @@ export class ConversationsService {
   ) {}
 
   async findAll(page = 1, limit = 20, search = '') {
-    const where = search
-      ? [
-          { summary: ILike(`%${search}%`) },
-          { externalId: ILike(`%${search}%`) },
-          {
-            userMetadata: Raw((alias) => `${alias}::text ILIKE :search`, {
-              search: `%${search}%`,
-            }),
-          },
-        ]
-      : {};
+    const qb = this.conversationRepository
+      .createQueryBuilder('c')
+      .orderBy('c.updatedAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit);
 
-    const [items, total] = await this.conversationRepository.findAndCount({
-      where,
-      order: { updatedAt: 'DESC' },
-      skip: (page - 1) * limit,
-      take: limit,
-      select: {
-        id: true,
-        externalId: true,
-        createdAt: true,
-        updatedAt: true,
-        isViewedByAdmin: true,
-        messagesCount: true,
-        summary: true,
-        userMetadata: true,
-      },
-    });
+    if (search) {
+      qb.andWhere(
+        `
+    c.summary ILIKE :search
+    OR c.externalId ILIKE :search
+    OR c.userMetadata ->> 'firstName' ILIKE :search
+    OR c.userMetadata ->> 'lastName' ILIKE :search
+    `,
+        { search: `%${search}%` },
+      );
+    }
+
+    qb.select([
+      'c.id',
+      'c.externalId',
+      'c.createdAt',
+      'c.updatedAt',
+      'c.isViewedByAdmin',
+      'c.messagesCount',
+      'c.summary',
+      'c.userMetadata',
+    ]);
+
+    const [items, total] = await qb.getManyAndCount();
 
     return { items, total, page, limit };
   }
