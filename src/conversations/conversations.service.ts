@@ -25,7 +25,11 @@ export class ConversationsService {
       ? [
           { summary: ILike(`%${search}%`) },
           { externalId: ILike(`%${search}%`) },
-          Raw((alias) => `${alias}::text ILIKE '%${search}%'`, { search }),
+          {
+            userMetadata: Raw((alias) => `${alias}::text ILIKE :search`, {
+              search: `%${search}%`,
+            }),
+          },
         ]
       : {};
 
