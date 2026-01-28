@@ -1,6 +1,6 @@
 import { InjectRepository } from '@nestjs/typeorm';
 import { RagDocumentEntity } from './entities/rag-document.entity';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { OpenAIService } from '../openai/openai.service';
 import {
   forwardRef,
@@ -62,8 +62,26 @@ export class RagDocumentsService {
     await this.repo.delete(id);
   }
 
-  async findAll() {
-    return this.repo.find({ order: { createdAt: 'DESC' } });
+  async findAll(params: { page: number; limit: number; search: string }) {
+    const { page, limit, search } = params;
+
+    const where = search
+      ? [{ title: Like(`%${search}%`) }, { content: Like(`%${search}%`) }]
+      : {};
+
+    const [items, total] = await this.repo.findAndCount({
+      where,
+      order: { createdAt: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+
+    return {
+      items,
+      total,
+      page,
+      limit,
+    };
   }
 
   async findByID(id: string) {

@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { RagDocumentsService } from './rag-documents.service';
@@ -39,8 +40,16 @@ export class RagDocumentsController {
   }
 
   @Get()
-  findAll() {
-    return this.service.findAll();
+  findAll(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 20,
+    @Query('search') search: string = '',
+  ) {
+    return this.service.findAll({
+      page: Number(page),
+      limit: Number(limit),
+      search,
+    });
   }
 
   @Get(':id')
